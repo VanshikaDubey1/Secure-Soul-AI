@@ -56,7 +56,7 @@ const knowledgeBase = {
 
 const RagBasedResponseInputSchema = z.object({
   query: z.string().describe('The user query.'),
-  intent: z.enum(['Mental Health', 'Legal', 'Government Schemes', 'Safety']).describe('The detected user intent.'),
+  intent: z.string().describe('The detected user intent.'),
   context: z.string().optional().describe('Additional context to refine the answer.'),
 });
 export type RagBasedResponseInput = z.infer<typeof RagBasedResponseInputSchema>;
@@ -98,7 +98,7 @@ const ragBasedResponseFlow = ai.defineFlow(
     outputSchema: RagBasedResponseOutputSchema,
   },
   async input => {
-    const knowledge = knowledgeBase[input.intent] || "";
+    const knowledge = knowledgeBase[input.intent as keyof typeof knowledgeBase] || "";
     const {output} = await prompt({...input, knowledge});
     return output!;
   }
