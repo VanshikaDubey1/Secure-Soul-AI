@@ -2,7 +2,7 @@
 
 SecureSoulAI is a next-generation, multi-domain AI assistant designed to provide empathetic, context-aware support across critical areas of life: mental health, legal rights, government schemes, and personal safety. It leverages the power of Retrieval-Augmented Generation (RAG) and advanced generative AI to deliver conversations that are not only intelligent but also emotionally attuned to the user.
 
-![SecureSoulAI Assistant](https://github.com/VanshikaDubey1/Secure-Soul-AI/blob/main/Screenshot%202025-07-25%20214335.png,text=SecureSoulAI+Interface)
+![SecureSoulAI Assistant](Screenshot%202025-07-25%20214335.png,text=SecureSoulAI+Interface)
 *<p align="center">A preview of the domain-adaptive user interface.</p>*
 
 ---
