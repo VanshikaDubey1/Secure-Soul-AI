@@ -49,8 +49,8 @@ SecureSoulAI is a next-generation, multi-domain AI assistant designed to provide
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-repo/securesoul-ai.git
-   cd securesoul-ai
+   git clone https://github.com/VanshikaDubey1/Secure-Soul-AI.git
+   cd Secure-Soul-AI
    ```
 
 2. **Install dependencies:**
@@ -126,3 +126,4 @@ The assistant's intelligence is powered by a series of interconnected Genkit flo
     -   It generates a context-aware, emotionally intelligent response in either English or Hinglish.
 4.  **Audio Response**:
     -   `textToSpeech`: The final text response is converted back into natural-sounding audio for the user.
+```
