@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { BrainCircuit, Scale, Landmark, Shield, Send, User, Bot } from "lucide-react";
+import ReactMarkdown from 'react-markdown';
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -152,13 +153,25 @@ export default function ChatAssistant() {
                     )}
                     <div
                       className={cn(
-                        "max-w-md rounded-lg p-3 text-sm shadow-md",
+                        "max-w-md rounded-lg p-3 text-sm shadow-md prose prose-sm",
+                        "prose-p:m-0",
+                        "prose-a:text-primary hover:prose-a:text-primary/90",
                         message.role === "user"
                           ? "bg-accent text-accent-foreground rounded-br-none"
                           : "bg-card text-card-foreground rounded-bl-none"
                       )}
                     >
-                      <p className="whitespace-pre-wrap">{message.content}</p>
+                       {message.role === 'assistant' ? (
+                          <ReactMarkdown
+                            components={{
+                              a: ({node, ...props}) => <a {...props} target="_blank" rel="noopener noreferrer" />,
+                            }}
+                          >
+                            {message.content}
+                          </ReactMarkdown>
+                        ) : (
+                          <p className="whitespace-pre-wrap">{message.content}</p>
+                        )}
                     </div>
                     {message.role === 'user' && (
                         <Avatar className="h-8 w-8">

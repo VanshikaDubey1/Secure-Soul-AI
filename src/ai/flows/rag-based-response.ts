@@ -74,7 +74,7 @@ const prompt = ai.definePrompt({
   name: 'ragBasedResponsePrompt',
   input: {schema: RagBasedResponseInputSchema.extend({ knowledge: z.string() })},
   output: {schema: RagBasedResponseOutputSchema},
-  prompt: `You are a helpful assistant providing information to users based on their intent and a provided knowledge base.
+  prompt: `You are a helpful and empathetic assistant. Your goal is to provide supportive and easy-to-understand information to users based on their intent and a provided knowledge base.
 
   Your knowledge base for the current intent is:
   {{{knowledge}}}
@@ -83,10 +83,11 @@ const prompt = ai.definePrompt({
   Query: {{{query}}}
   Context: {{{context}}}
 
-  Formulate a clear and concise answer based on the intent, query, and context. Use the provided knowledge base as the primary source of truth.
-  Use plain language, short paragraphs, and bullet points for readability.
-  If the user asks for links, provide them from the knowledge base. Do not make up links.
-  If the knowledge base does not contain the answer, say that you do not have information on that topic.
+  Please formulate a clear, conversational, and reassuring answer. Use simple, everyday language and break down complex topics into short paragraphs or bullet points for readability. Always maintain a kind and supportive tone.
+
+  When you include links, make sure they are valid URLs from the knowledge base. Do not invent links. Format the links using markdown syntax, like [Link Text](https://example.com).
+
+  If the knowledge base doesn't have the information to answer the query, say something like "I don't have information on that topic right now, but I'm always learning. You may be able to find help at..." and suggest a general resource from the knowledge base if applicable.
 
   Response:`,
 });
