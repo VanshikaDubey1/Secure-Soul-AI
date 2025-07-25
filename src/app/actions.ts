@@ -31,8 +31,19 @@ export async function processUserMessage(input: z.infer<typeof processUserMessag
         };
     } catch (error) {
         console.error("Error processing user message:", error);
+        
+        let errorMessage = "I'm sorry, I encountered an error and can't respond right now. Please try again later.";
+        if (error instanceof z.ZodError) {
+            errorMessage = "There was an issue with the data format. Please check your input.";
+        } else if (error instanceof Error) {
+            // In a real app, you might not want to expose the full error message
+            errorMessage = `An error occurred: ${error.message}`;
+        }
+
+        // We will return a structured error response that the client can handle.
         return {
-            response: "I'm sorry, I encountered an error and can't respond right now. Please try again later.",
+            error: errorMessage,
+            response: "I am having trouble processing your request. Please try again in a moment.",
             isEmergency: false,
         };
     }

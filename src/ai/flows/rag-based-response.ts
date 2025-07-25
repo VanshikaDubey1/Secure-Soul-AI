@@ -72,7 +72,7 @@ export async function ragBasedResponse(input: RagBasedResponseInput): Promise<Ra
 
 const prompt = ai.definePrompt({
   name: 'ragBasedResponsePrompt',
-  input: {schema: RagBasedResponseInputSchema},
+  input: {schema: RagBasedResponseInputSchema.extend({ knowledge: z.string() })},
   output: {schema: RagBasedResponseOutputSchema},
   prompt: `You are a helpful assistant providing information to users based on their intent and a provided knowledge base.
 
@@ -98,7 +98,7 @@ const ragBasedResponseFlow = ai.defineFlow(
     outputSchema: RagBasedResponseOutputSchema,
   },
   async input => {
-    const knowledge = knowledgeBase[input.intent as keyof typeof knowledgeBase] || "";
+    const knowledge = knowledgeBase[input.intent as keyof typeof knowledgeBase] || "No information found for this domain.";
     const {output} = await prompt({...input, knowledge});
     return output!;
   }

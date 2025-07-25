@@ -16,6 +16,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import EmergencyContacts from "@/components/emergency-contacts";
 import { processUserMessage } from "@/app/actions";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   message: z.string().min(1, { message: "Message cannot be empty." }),
@@ -42,6 +43,7 @@ export default function ChatAssistant() {
   const [isLoading, setIsLoading] = useState(false);
   const [isEmergency, setIsEmergency] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -77,6 +79,10 @@ export default function ChatAssistant() {
     try {
       const result = await processUserMessage({ query: values.message, domain: selectedDomain });
       
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
       const assistantMessage: Message = {
         id: crypto.randomUUID(),
         role: "assistant",
@@ -90,12 +96,18 @@ export default function ChatAssistant() {
       setMessages((prev) => [...prev, assistantMessage]);
 
     } catch (error) {
+        const errorMessageContent = error instanceof Error ? error.message : "I'm sorry, something went wrong. Please try again.";
         const errorMessage: Message = {
             id: crypto.randomUUID(),
             role: "assistant",
-            content: "I'm sorry, something went wrong. Please try again."
+            content: errorMessageContent
         }
         setMessages((prev) => [...prev, errorMessage]);
+        toast({
+          title: "An Error Occurred",
+          description: errorMessageContent,
+          variant: "destructive",
+        })
     } finally {
       setIsLoading(false);
     }
