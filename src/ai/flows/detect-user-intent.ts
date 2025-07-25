@@ -26,7 +26,7 @@ const DetectUserIntentOutputSchema = z.object({
   emergency: z
     .boolean()
     .optional()
-    .describe('True if the query indicates an emergency situation.'),
+    .describe('True if the query indicates an emergency situation based on keywords like "panic", "emergency", "urgent", or "help".'),
 });
 export type DetectUserIntentOutput = z.infer<typeof DetectUserIntentOutputSchema>;
 
@@ -45,12 +45,11 @@ const detectUserIntentPrompt = ai.definePrompt({
 
   Query: {{{query}}}
 
-  {{#if (includes query "panic", "emergency", "urgent", "help")}}
-  Also, detect if the user's query indicates an emergency situation (panic, immediate danger, etc.).  If so, set the 'emergency' field to true.
-  {{/if}}
+  Detect if the user's query indicates an emergency situation (e.g., contains keywords like "panic", "emergency", "urgent", "help", "danger"). If it does, set the 'emergency' field to true.
 
-  Format your response as a JSON object with 'intent' and 'reasoning' fields.  If you detect an emergency, include the 'emergency' field as well.
-  `,config: {
+  Format your response as a JSON object with 'intent' and 'reasoning' fields. If you detect an emergency, include the 'emergency' field as well.
+  `,
+  config: {
     safetySettings: [
       {
         category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
