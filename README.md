@@ -128,4 +128,8 @@ The assistant's intelligence is powered by a series of interconnected Genkit flo
     -   It generates a context-aware, emotionally intelligent response in either English or Hinglish.
 4.  **Audio Response**:
     -   `textToSpeech`: The final text response is converted back into natural-sounding audio for the user.
-```
+  
+
+
+📫 Contact
+For any queries or feedback, reach out via GitHub or email.
