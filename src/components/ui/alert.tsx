@@ -22,14 +22,17 @@ const alertVariants = cva(
 const Alert = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof alertVariants>
->(({ className, variant, ...props }, ref) => (
-  <div
-    ref={ref}
-    role="alert"
-    className={cn(alertVariants({ variant }), className)}
-    {...props}
-  />
-))
+>(({ className, variant, ...props }, ref) => {
+  const isSafetyTheme = typeof window !== 'undefined' && document.body.classList.contains('theme-safety');
+  return (
+    <div
+      ref={ref}
+      role="alert"
+      className={cn(alertVariants({ variant }), { 'animate-glow': isSafetyTheme && variant === 'destructive'}, className)}
+      {...props}
+    />
+  )
+})
 Alert.displayName = "Alert"
 
 const AlertTitle = React.forwardRef<

@@ -313,7 +313,7 @@ export default function ChatAssistant({ onDomainChange }: { onDomainChange: (dom
                       key={message.id}
                       className={cn(
                         "flex items-end gap-3",
-                        message.role === "user" ? "justify-end" : "justify-start"
+                        message.role === "user" ? "justify-end animate-slide-in-right" : "justify-start animate-slide-in-left"
                       )}
                     >
                       {message.role === 'assistant' && (
@@ -358,7 +358,7 @@ export default function ChatAssistant({ onDomainChange }: { onDomainChange: (dom
                     </div>
                   ))}
                   {currentChatState.isLoading && (
-                    <div className="flex items-end gap-3 justify-start">
+                    <div className="flex items-end gap-3 justify-start animate-slide-in-left">
                       <Avatar className="h-8 w-8">
                         <AvatarFallback className="bg-primary text-primary-foreground"><Bot className="h-5 w-5" /></AvatarFallback>
                       </Avatar>

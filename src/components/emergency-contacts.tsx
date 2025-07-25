@@ -1,9 +1,10 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Phone, ShieldAlert, Siren } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 export default function EmergencyContacts() {
   return (
-    <Alert variant="destructive" className="mb-4 animate-pulse">
+    <Alert variant="destructive" className="mb-4 animate-pulse theme-safety:animate-glow">
       <ShieldAlert className="h-4 w-4" />
       <AlertTitle>Emergency Detected</AlertTitle>
       <AlertDescription>

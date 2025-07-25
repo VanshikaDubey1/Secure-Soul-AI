@@ -23,6 +23,28 @@
       box-shadow: 0 0 30px hsl(var(--accent) / 0.7), inset 0 0 20px hsl(var(--accent) / 0.4);
     }
   }
+
+  @keyframes slide-in-from-left {
+    from {
+      transform: translateX(-20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slide-in-from-right {
+    from {
+      transform: translateX(20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
 }
 
 
@@ -172,4 +194,12 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.animate-slide-in-left {
+  animation: slide-in-from-left 0.4s ease-out forwards;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-from-right 0.4s ease-out forwards;
 }
