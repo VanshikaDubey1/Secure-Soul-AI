@@ -41,7 +41,7 @@ const prompt = ai.definePrompt({
   Incorporate relevant information from the knowledge base to provide a comprehensive and helpful response.
   If context is present, use it to refine the answer.
 
-  Response:`, // Removed JSON mode
+  Response:`,
 });
 
 const ragBasedResponseFlow = ai.defineFlow(
@@ -52,6 +52,6 @@ const ragBasedResponseFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return {response: output!.response!};
+    return output!;
   }
 );
