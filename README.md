@@ -1,4 +1,4 @@
-# SecureSoulAI: Your Emotionally Intelligent AI Companion
+# SecureSoulAI: Your  Intelligent RAG AI Companion
 
 SecureSoulAI is a next-generation, multi-domain AI assistant designed to provide empathetic, context-aware support across critical areas of life: mental health, legal rights, government schemes, and personal safety. It leverages the power of Retrieval-Augmented Generation (RAG) and advanced generative AI to deliver conversations that are not only intelligent but also emotionally attuned to the user.
 
