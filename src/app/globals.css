@@ -2,6 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  @keyframes gradient-animation {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  @keyframes alert-glow {
+    0%, 100% {
+      box-shadow: 0 0 20px hsl(var(--accent) / 0.5), inset 0 0 15px hsl(var(--accent) / 0.3);
+    }
+    50% {
+      box-shadow: 0 0 30px hsl(var(--accent) / 0.7), inset 0 0 20px hsl(var(--accent) / 0.4);
+    }
+  }
+}
+
+
 /* Default Theme (Mental Health - Sheny) */
 @layer base {
   :root {
@@ -48,6 +72,12 @@
     --input: 178.5 44.1% 20%;
     --ring: 178.5 44.1% 55%;
   }
+
+  .theme-mental-health {
+    background: linear-gradient(135deg, hsl(180, 50%, 96.1%), hsl(256.7, 35.7%, 90%), hsl(178.5, 44.1%, 85%));
+    background-size: 400% 400%;
+    animation: gradient-animation 25s ease infinite;
+  }
 }
 
 /* Legal Rights Theme (Gravy) */
@@ -71,6 +101,10 @@
     --border: 210 40% 80%;
     --input: 210 40% 88%;
     --ring: 45 100% 75%;
+    
+    background: linear-gradient(-45deg, hsl(210, 40%, 98%), hsl(210, 40%, 90%), hsl(45, 100%, 95%));
+    background-size: 400% 400%;
+    animation: gradient-animation 25s ease infinite;
 }
 
 /* Government Schemes Theme (Aarogya) */
@@ -94,6 +128,10 @@
     --border: 30 100% 80%;
     --input: 30 100% 88%;
     --ring: 120 70% 35%;
+
+    background: linear-gradient(45deg, hsl(120, 70%, 96%), hsl(30, 100%, 97%), hsl(30, 100%, 90%));
+    background-size: 400% 400%;
+    animation: gradient-animation 25s ease infinite;
 }
 
 /* Safety Theme (Alert) */
@@ -117,6 +155,14 @@
     --border: 0 0% 80%;
     --input: 0 0% 88%;
     --ring: 0 84.2% 60.2%;
+
+    background: linear-gradient(225deg, hsl(0, 0%, 12%), hsl(0, 84.2%, 30%), hsl(48, 100%, 20%));
+    background-size: 400% 400%;
+    animation: gradient-animation 15s ease infinite;
+}
+
+.theme-safety .bg-card {
+  animation: alert-glow 3s ease-in-out infinite;
 }
  
 @layer base {
