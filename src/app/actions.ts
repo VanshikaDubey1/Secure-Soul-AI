@@ -5,7 +5,8 @@ import { ragBasedResponse } from '@/ai/flows/rag-based-response';
 import { speechToText } from '@/ai/flows/speech-to-text';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { z } from 'zod';
-import { processUserAudioInputSchema, processUserMessageInputSchema } from '@/app/schema';
+import { processUserAudioInputSchema, processUserMessageInputSchema, SpeechToTextInputSchema, TranscribeAudioResponseSchema } from '@/app/schema';
+import { detectEmotion } from '@/ai/flows/detect-emotion';
 
 
 export async function processUserMessage(input: z.infer<typeof processUserMessageInputSchema>) {
@@ -47,22 +48,37 @@ export async function processUserMessage(input: z.infer<typeof processUserMessag
 }
 
 
+export async function transcribeAudio(input: z.infer<typeof SpeechToTextInputSchema>) {
+    try {
+        const validatedInput = SpeechToTextInputSchema.parse(input);
+        const sttResult = await speechToText(validatedInput);
+        return TranscribeAudioResponseSchema.parse({ text: sttResult.text });
+    } catch (error) {
+        console.error("Error transcribing audio:", error);
+        return {
+            error: "Failed to transcribe audio."
+        }
+    }
+}
+
+
 export async function processUserAudio(input: z.infer<typeof processUserAudioInputSchema>) {
     try {
         const validatedInput = processUserAudioInputSchema.parse(input);
-        const { audio, domain } = validatedInput;
+        const { query, domain } = validatedInput;
 
-        // 1. Speech to Text and Emotion Detection
-        const sttResult = await speechToText({ audio });
-        const { text: query, emotion } = sttResult;
+        // 1. Intent Detection and Emotion Detection (in parallel)
+        const [intentResult, emotionResult] = await Promise.all([
+            detectUserIntent({ query }),
+            detectEmotion({ query })
+        ]);
 
-        // 2. Intent Detection (using transcribed text)
-        const intentResult = await detectUserIntent({ query });
+        const { emotion } = emotionResult;
 
-        // 3. Domain Selection
+        // 2. Domain Selection
         const finalIntent = intentResult.intent === 'Panic' ? 'Safety' : domain;
         
-        // 4. RAG Response (with emotion context)
+        // 3. RAG Response (with emotion context)
         const ragResult = await ragBasedResponse({
             query,
             intent: finalIntent,
@@ -70,11 +86,10 @@ export async function processUserAudio(input: z.infer<typeof processUserAudioInp
             context: `User has shown interest in the ${finalIntent} domain. Emotion detected: ${emotion}. Reasoning for intent detection: ${intentResult.reasoning}`
         });
 
-        // 5. Text to Speech for the response
+        // 4. Text to Speech for the response
         const ttsResult = await textToSpeech(ragResult.response);
 
         return {
-            userQuery: query, // Send transcribed text back to UI
             response: ragResult.response,
             responseAudio: ttsResult.media, // Send audio response back to UI
             isEmergency: intentResult.intent === 'Panic' || !!intentResult.emergency,
@@ -88,7 +103,6 @@ export async function processUserAudio(input: z.infer<typeof processUserAudioInp
         }
         return {
             error: errorMessage,
-            userQuery: "Could not transcribe audio.",
             response: "I am having trouble processing your request. Please try again in a moment.",
             isEmergency: false,
         };

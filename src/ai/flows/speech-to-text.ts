@@ -1,9 +1,9 @@
 'use server';
 
 /**
- * @fileOverview Transcribes audio and detects the user's emotion.
+ * @fileOverview Transcribes audio.
  *
- * - speechToText - A function that transcribes audio and detects emotion.
+ * - speechToText - A function that transcribes audio.
  */
 
 import {ai} from '@/ai/genkit';
@@ -27,9 +27,9 @@ const sttPrompt = ai.definePrompt({
     schema: SpeechToTextOutputSchema,
   },
   prompt: `
-    You are an expert at analyzing audio and determining the user's emotion from their tone of voice.
+    You are an expert at analyzing audio.
     1. Transcribe the user's words into text.
-    2. Analyze the user's tone of voice to determine their emotion. The emotion must be one of: "sad", "angry", "happy", "scared", "confused", or "neutral".
+    2. Set emotion to "neutral" as a placeholder. We will detect it later.
     
     Audio:
     {{media url=audio}}
@@ -45,6 +45,13 @@ const speechToTextFlow = ai.defineFlow(
   },
   async (input) => {
     const { output } = await sttPrompt(input);
-    return output!;
+    if (!output) {
+      return { text: "Could not transcribe audio.", emotion: "neutral" };
+    }
+    // Ensure emotion is set, even if the model doesn't provide it.
+    if (!output.emotion) {
+      output.emotion = 'neutral';
+    }
+    return output;
   }
 );
