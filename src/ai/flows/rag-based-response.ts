@@ -13,10 +13,10 @@ import {z} from 'genkit';
 
 const knowledgeBase = {
   "Mental Health": `
-    - NIMHANS (India): Official mental health guides, therapy manuals, and self-help PDFs. (https://nimhans.ac.in/resources/)
-    - WHO Mental Health Resources: Public guides, reports, and self-care documents. (https://www.who.int/teams/mental-health-and-substance-use/mental-health-integration)
+    - NIMHANS (India): https://nimhans.ac.in/resources/ - Official mental health guides, therapy manuals, and self-help PDFs.
+    - WHO Mental Health Resources: https://www.who.int/teams/mental-health-and-substance-use/mental-health-integration - Public guides, reports, and self-care documents.
     - Open Source CBT Guides: Search GitHub or open repositories for Cognitive Behavioral Therapy manuals.
-    - PubMed Central: Free medical articles related to psychology and therapy. (https://www.ncbi.nlm.nih.gov/pmc/)
+    - PubMed Central: https://www.ncbi.nlm.nih.gov/pmc/ - Free medical articles related to psychology and therapy.
     - National Suicide Prevention Lifeline (US): https://suicidepreventionlifeline.org
     - Crisis Text Line (US): https://www.crisistextline.org (Text HOME to 741741)
   `,
@@ -59,6 +59,7 @@ const knowledgeBase = {
 const RagBasedResponseInputSchema = z.object({
   query: z.string().describe('The user query.'),
   intent: z.string().describe('The detected user intent.'),
+  emotion: z.string().optional().describe('The detected emotion from the user\'s voice (e.g., "sad", "angry", "happy").'),
   context: z.string().optional().describe('Additional context to refine the answer.'),
 });
 export type RagBasedResponseInput = z.infer<typeof RagBasedResponseInputSchema>;
@@ -77,6 +78,13 @@ const prompt = ai.definePrompt({
   input: {schema: RagBasedResponseInputSchema.extend({ knowledge: z.string() })},
   output: {schema: RagBasedResponseOutputSchema},
   prompt: `You are a compassionate, understanding, and friendly support assistant. Your goal is to provide supportive and easy-to-understand information to users, behaving like a caring friend.
+  You MUST adapt your tone based on the user's detected emotion.
+
+  - If user is **sad** -> be soft, comforting, and patient.
+  - If user is **angry** -> be calm, validating, and solution-oriented.
+  - If user is **happy** -> match their tone, be engaging and encouraging.
+  - If user is **scared or confused** -> be clear, reassuring, and supportive.
+  - If emotion is **neutral** or not provided -> maintain a standard friendly, supportive tone.
 
   When the user expresses feelings of distress, especially suicidal thoughts, your first priority is to **acknowledge their feelings with empathy** and **offer comfort**.
 
@@ -90,7 +98,7 @@ const prompt = ai.definePrompt({
   - **Prioritize Safety:** If the user is in immediate danger, strongly encourage them to contact emergency services or a crisis helpline immediately.
 
   ---
-  Example reply when user says: “I am feeling suicidal”
+  Example reply when user says: “I am feeling suicidal” (Emotion: sad)
 
   Response:
 
@@ -105,10 +113,11 @@ const prompt = ai.definePrompt({
   {{{knowledge}}}
 
   Intent: {{{intent}}}
+  Emotion: {{{emotion}}}
   Query: {{{query}}}
   Context: {{{context}}}
 
-  Please formulate a clear, conversational, and reassuring answer based on all the instructions above. Use simple, everyday language and break down complex topics. Always maintain a kind and supportive tone.
+  Please formulate a clear, conversational, and reassuring answer based on all the instructions above. Use simple, everyday language and break down complex topics. Always maintain a kind and supportive tone adapted to the user's emotion.
 
   When you include links, make sure they are valid URLs from the knowledge base and format them using markdown, like [Link Text](https://example.com).
 

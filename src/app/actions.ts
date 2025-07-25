@@ -2,6 +2,8 @@
 
 import { detectUserIntent } from '@/ai/flows/detect-user-intent';
 import { ragBasedResponse } from '@/ai/flows/rag-based-response';
+import { speechToText } from '@/ai/flows/speech-to-text';
+import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { z } from 'zod';
 
 const processUserMessageInput = z.object({
@@ -36,13 +38,65 @@ export async function processUserMessage(input: z.infer<typeof processUserMessag
         if (error instanceof z.ZodError) {
             errorMessage = "There was an issue with the data format. Please check your input.";
         } else if (error instanceof Error) {
-            // In a real app, you might not want to expose the full error message
             errorMessage = `An error occurred: ${error.message}`;
         }
 
-        // We will return a structured error response that the client can handle.
         return {
             error: errorMessage,
+            response: "I am having trouble processing your request. Please try again in a moment.",
+            isEmergency: false,
+        };
+    }
+}
+
+
+const processUserAudioInput = z.object({
+    audio: z.string(),
+    domain: z.string(),
+});
+
+export async function processUserAudio(input: z.infer<typeof processUserAudioInput>) {
+    try {
+        const validatedInput = processUserAudioInput.parse(input);
+        const { audio, domain } = validatedInput;
+
+        // 1. Speech to Text and Emotion Detection
+        const sttResult = await speechToText({ audio });
+        const { text: query, emotion } = sttResult;
+
+        // 2. Intent Detection (using transcribed text)
+        const intentResult = await detectUserIntent({ query });
+
+        // 3. Domain Selection
+        const finalIntent = intentResult.intent === 'Panic' ? 'Safety' : domain;
+        
+        // 4. RAG Response (with emotion context)
+        const ragResult = await ragBasedResponse({
+            query,
+            intent: finalIntent,
+            emotion: emotion,
+            context: `User has shown interest in the ${finalIntent} domain. Emotion detected: ${emotion}. Reasoning for intent detection: ${intentResult.reasoning}`
+        });
+
+        // 5. Text to Speech for the response
+        const ttsResult = await textToSpeech(ragResult.response);
+
+        return {
+            userQuery: query, // Send transcribed text back to UI
+            response: ragResult.response,
+            responseAudio: ttsResult.media, // Send audio response back to UI
+            isEmergency: intentResult.intent === 'Panic' || !!intentResult.emergency,
+        };
+
+    } catch (error) {
+        console.error("Error processing user audio:", error);
+        let errorMessage = "I'm sorry, I couldn't process the audio. Please try again.";
+        if (error instanceof Error) {
+            errorMessage = `An error occurred: ${error.message}`;
+        }
+        return {
+            error: errorMessage,
+            userQuery: "Could not transcribe audio.",
             response: "I am having trouble processing your request. Please try again in a moment.",
             isEmergency: false,
         };

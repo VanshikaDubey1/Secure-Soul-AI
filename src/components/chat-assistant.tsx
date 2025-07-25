@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { BrainCircuit, Scale, Landmark, Shield, Send, User, Bot, AlertTriangle } from "lucide-react";
+import { BrainCircuit, Scale, Landmark, Shield, Send, User, Bot, AlertTriangle, Mic, Square, Volume2 } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import EmergencyContacts from "@/components/emergency-contacts";
-import { processUserMessage } from "@/app/actions";
+import { processUserMessage, processUserAudio } from "@/app/actions";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -30,6 +30,7 @@ type Message = {
   id: string;
   role: "user" | "assistant";
   content: string;
+  audio?: string;
 };
 
 type ChatState = {
@@ -65,6 +66,11 @@ export default function ChatAssistant({ onDomainChange }: { onDomainChange: (dom
   });
 
   const [pendingDomain, setPendingDomain] = useState<Domain | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const activeAudioRef = useRef<HTMLAudioElement | null>(null);
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -107,6 +113,110 @@ export default function ChatAssistant({ onDomainChange }: { onDomainChange: (dom
   const cancelDomainSwitch = () => {
     setPendingDomain(null);
   };
+
+  const playAudio = (audioUrl: string) => {
+    if (activeAudioRef.current && !activeAudioRef.current.paused) {
+      activeAudioRef.current.pause();
+      activeAudioRef.current.currentTime = 0;
+    }
+    const audio = new Audio(audioUrl);
+    audio.play();
+    activeAudioRef.current = audio;
+  };
+
+  const handleAudioSubmit = async (audioBlob: Blob) => {
+    setCurrentChatState(prev => ({ ...prev, isLoading: true }));
+    const reader = new FileReader();
+    reader.readAsDataURL(audioBlob);
+    reader.onloadend = async () => {
+      const base64Audio = reader.result as string;
+
+      try {
+        const result = await processUserAudio({ audio: base64Audio, domain: selectedDomain });
+
+        if (result.error) {
+          throw new Error(result.error);
+        }
+        
+        const userMessage: Message = {
+            id: crypto.randomUUID(),
+            role: "user",
+            content: result.userQuery || "Audio message",
+        };
+        setCurrentChatState(prev => ({ ...prev, messages: [...prev.messages, userMessage] }));
+
+        const assistantMessage: Message = {
+            id: crypto.randomUUID(),
+            role: "assistant",
+            content: result.response,
+            audio: result.responseAudio,
+        };
+
+        if (result.isEmergency && !currentChatState.isEmergency) {
+            setCurrentChatState(prev => ({ ...prev, isEmergency: true }));
+        }
+
+        setCurrentChatState(prev => ({ ...prev, messages: [...prev.messages, assistantMessage] }));
+
+        if(result.responseAudio){
+            playAudio(result.responseAudio);
+        }
+
+      } catch (error) {
+        const errorMessageContent = error instanceof Error ? error.message : "I'm sorry, something went wrong. Please try again.";
+        const errorMessage: Message = {
+            id: crypto.randomUUID(),
+            role: "assistant",
+            content: errorMessageContent
+        }
+        setCurrentChatState(prev => ({ ...prev, messages: [...prev.messages, errorMessage] }));
+        toast({
+          title: "An Error Occurred",
+          description: errorMessageContent,
+          variant: "destructive",
+        })
+      } finally {
+        setCurrentChatState(prev => ({ ...prev, isLoading: false }));
+      }
+    };
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorderRef.current = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+      
+      mediaRecorderRef.current.ondataavailable = (event) => {
+        audioChunksRef.current.push(event.data);
+      };
+      
+      mediaRecorderRef.current.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+        handleAudioSubmit(audioBlob);
+        // stop all tracks
+        stream.getTracks().forEach(track => track.stop());
+      };
+      
+      mediaRecorderRef.current.start();
+      setIsRecording(true);
+    } catch (error) {
+      console.error("Error accessing microphone:", error);
+      toast({
+        title: "Microphone Access Denied",
+        description: "Please allow microphone access in your browser settings to use voice input.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setCurrentChatState(prev => ({ ...prev, isLoading: true }));
@@ -194,6 +304,7 @@ export default function ChatAssistant({ onDomainChange }: { onDomainChange: (dom
                           "max-w-md rounded-lg p-3 text-sm shadow-md prose prose-sm",
                           "prose-p:m-0",
                           "prose-a:text-primary hover:prose-a:text-primary/90",
+                           "flex items-center gap-2",
                           message.role === "user"
                             ? "bg-accent text-accent-foreground rounded-br-none"
                             : "bg-card text-card-foreground rounded-bl-none"
@@ -209,6 +320,12 @@ export default function ChatAssistant({ onDomainChange }: { onDomainChange: (dom
                             </ReactMarkdown>
                           ) : (
                             <p className="whitespace-pre-wrap">{message.content}</p>
+                          )}
+                          {message.audio && (
+                            <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => playAudio(message.audio!)}>
+                                <Volume2 className="h-4 w-4"/>
+                                <span className="sr-only">Play audio response</span>
+                            </Button>
                           )}
                       </div>
                       {message.role === 'user' && (
@@ -244,14 +361,24 @@ export default function ChatAssistant({ onDomainChange }: { onDomainChange: (dom
                       render={({ field }) => (
                         <FormItem className="flex-grow">
                           <FormControl>
-                            <Input placeholder={`Message ${domainConfig[selectedDomain].persona}...`} {...field} disabled={currentChatState.isLoading} className="bg-card"/>
+                            <Input placeholder={`Message ${domainConfig[selectedDomain].persona}...`} {...field} disabled={currentChatState.isLoading || isRecording} className="bg-card"/>
                           </FormControl>
                         </FormItem>
                       )}
                     />
-                    <Button type="submit" disabled={currentChatState.isLoading} size="icon" className="shrink-0 bg-primary hover:bg-primary/90">
+                    <Button type="submit" disabled={currentChatState.isLoading || isRecording} size="icon" className="shrink-0 bg-primary hover:bg-primary/90">
                       <Send className="h-5 w-5" />
                       <span className="sr-only">Send</span>
+                    </Button>
+                    <Button 
+                      type="button" 
+                      size="icon" 
+                      className={cn("shrink-0", isRecording ? "bg-red-500 hover:bg-red-600" : "bg-primary hover:bg-primary/90")}
+                      onClick={isRecording ? stopRecording : startRecording}
+                      disabled={currentChatState.isLoading}
+                    >
+                      {isRecording ? <Square className="h-5 w-5"/> : <Mic className="h-5 w-5" />}
+                      <span className="sr-only">{isRecording ? 'Stop Recording' : 'Start Recording'}</span>
                     </Button>
                   </form>
                 </Form>
