@@ -126,6 +126,16 @@ export default function ChatAssistant({ onDomainChange }: { onDomainChange: (dom
 
   const handleAudioSubmit = async (audioBlob: Blob) => {
     setCurrentChatState(prev => ({ ...prev, isLoading: true }));
+
+    const userMessage: Message = {
+        id: crypto.randomUUID(),
+        role: "user",
+        content: "🎤 Audio message...",
+    };
+    
+    // Add a placeholder message for the user's audio
+    setCurrentChatState(prev => ({ ...prev, messages: [...prev.messages, userMessage] }));
+
     const reader = new FileReader();
     reader.readAsDataURL(audioBlob);
     reader.onloadend = async () => {
@@ -138,12 +148,15 @@ export default function ChatAssistant({ onDomainChange }: { onDomainChange: (dom
           throw new Error(result.error);
         }
         
-        const userMessage: Message = {
-            id: crypto.randomUUID(),
-            role: "user",
-            content: result.userQuery || "Audio message",
+        // Update the user message with the transcribed text
+        const updatedUserMessage: Message = {
+            ...userMessage,
+            content: result.userQuery || "Audio message (could not transcribe)",
         };
-        setCurrentChatState(prev => ({ ...prev, messages: [...prev.messages, userMessage] }));
+        setCurrentChatState(prev => ({ 
+            ...prev, 
+            messages: prev.messages.map(msg => msg.id === userMessage.id ? updatedUserMessage : msg)
+        }));
 
         const assistantMessage: Message = {
             id: crypto.randomUUID(),
@@ -163,16 +176,16 @@ export default function ChatAssistant({ onDomainChange }: { onDomainChange: (dom
         }
 
       } catch (error) {
-        const errorMessageContent = "I'm sorry, I'm having a little trouble understanding. Could you please try again?";
+        const errorMessageContent = "I'm sorry, I had trouble with that audio. Could you please try again?";
         const errorMessage: Message = {
             id: crypto.randomUUID(),
             role: "assistant",
             content: errorMessageContent
         }
-        setCurrentChatState(prev => ({ ...prev, messages: [...prev.messages, errorMessage] }));
+        setCurrentChatState(prev => ({ ...prev, messages: [...prev.messages.filter(m => m.id !== userMessage.id), errorMessage] }));
         toast({
           title: "An Error Occurred",
-          description: "Something went wrong while processing your request.",
+          description: "Something went wrong while processing your audio.",
           variant: "destructive",
         })
       } finally {
