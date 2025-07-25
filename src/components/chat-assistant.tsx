@@ -194,7 +194,7 @@ export default function ChatAssistant({ onDomainChange }: { onDomainChange: (dom
         
         toast({
           title: "An Error Occurred",
-          description: "Something went wrong while processing your audio.",
+          description: "Sorry, I had trouble with that. Could you please try again?",
           variant: "destructive",
         })
       } finally {
@@ -270,7 +270,7 @@ export default function ChatAssistant({ onDomainChange }: { onDomainChange: (dom
       setCurrentChatState(prev => ({ ...prev, messages: [...prev.messages, assistantMessage] }));
 
     } catch (error) {
-        const errorMessageContent = "I'm sorry, I'm having a little trouble understanding. Could you please try again?";
+        const errorMessageContent = "I'm sorry, I had trouble with that. Could you please try again?";
         const errorMessage: Message = {
             id: crypto.randomUUID(),
             role: "assistant",
@@ -279,7 +279,7 @@ export default function ChatAssistant({ onDomainChange }: { onDomainChange: (dom
         setCurrentChatState(prev => ({ ...prev, messages: [...prev.messages, errorMessage] }));
         toast({
           title: "An Error Occurred",
-          description: "Something went wrong while processing your request.",
+          description: "Sorry, I had trouble with that. Could you please try again?",
           variant: "destructive",
         })
     } finally {
