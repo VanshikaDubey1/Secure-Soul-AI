@@ -179,7 +179,7 @@ export default function ChatAssistant({ onDomainChange }: { onDomainChange: (dom
         }
 
       } catch (error) {
-        const errorMessageContent = error instanceof Error ? error.message : "I'm sorry, I had trouble with that audio. Could you please try again?";
+        const errorMessageContent = "I'm sorry, I had trouble with that. Could you please try again?";
         const errorMessage: Message = {
             id: crypto.randomUUID(),
             role: "assistant",
@@ -188,7 +188,7 @@ export default function ChatAssistant({ onDomainChange }: { onDomainChange: (dom
         // Replace placeholder with the error message
         setCurrentChatState(prev => ({ 
           ...prev, 
-          messages: prev.messages.map(m => m.id === userMessage.id ? { ...userMessage, content: "Sorry, I couldn't process that."} : m),
+          messages: prev.messages.filter(m => m.id !== userMessage.id)
         }));
         setCurrentChatState(prev => ({...prev, messages: [...prev.messages, errorMessage]}));
         

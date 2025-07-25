@@ -19,7 +19,7 @@ export async function textToSpeech(query: string): Promise<{ media: string }> {
         speechConfig: {
           voiceConfig: {
             // Using a prebuilt voice that supports Indian English for a more natural Hinglish feel.
-            prebuiltVoiceConfig: { voiceName: 'Hyperion' },
+            prebuiltVoiceConfig: { voiceName: 'Algenib' },
           },
         },
       },
