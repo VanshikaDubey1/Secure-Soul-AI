@@ -5,15 +5,12 @@ import { ragBasedResponse } from '@/ai/flows/rag-based-response';
 import { speechToText } from '@/ai/flows/speech-to-text';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { z } from 'zod';
+import { processUserAudioInputSchema, processUserMessageInputSchema } from '@/app/schema';
 
-const processUserMessageInput = z.object({
-    query: z.string(),
-    domain: z.string(),
-});
 
-export async function processUserMessage(input: z.infer<typeof processUserMessageInput>) {
+export async function processUserMessage(input: z.infer<typeof processUserMessageInputSchema>) {
     try {
-        const validatedInput = processUserMessageInput.parse(input);
+        const validatedInput = processUserMessageInputSchema.parse(input);
         const { query, domain } = validatedInput;
 
         const intentResult = await detectUserIntent({ query });
@@ -50,14 +47,9 @@ export async function processUserMessage(input: z.infer<typeof processUserMessag
 }
 
 
-const processUserAudioInput = z.object({
-    audio: z.string(),
-    domain: z.string(),
-});
-
-export async function processUserAudio(input: z.infer<typeof processUserAudioInput>) {
+export async function processUserAudio(input: z.infer<typeof processUserAudioInputSchema>) {
     try {
-        const validatedInput = processUserAudioInput.parse(input);
+        const validatedInput = processUserAudioInputSchema.parse(input);
         const { audio, domain } = validatedInput;
 
         // 1. Speech to Text and Emotion Detection

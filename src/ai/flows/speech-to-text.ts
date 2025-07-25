@@ -4,23 +4,12 @@
  * @fileOverview Transcribes audio and detects the user's emotion.
  *
  * - speechToText - A function that transcribes audio and detects emotion.
- * - SpeechToTextInput - The input type for the speechToText function.
- * - SpeechToTextOutput - The return type for the speechToText function.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-
-export const SpeechToTextInputSchema = z.object({
-  audio: z.string().describe("A base64 encoded audio string, with a data URI prefix e.g. 'data:audio/wav;base64,<encoded_data>'."),
-});
-export type SpeechToTextInput = z.infer<typeof SpeechToTextInputSchema>;
-
-export const SpeechToTextOutputSchema = z.object({
-  text: z.string().describe('The transcribed text from the audio.'),
-  emotion: z.enum(['sad', 'angry', 'happy', 'scared', 'confused', 'neutral']).describe('The detected emotion from the user\'s tone.'),
-});
-export type SpeechToTextOutput = z.infer<typeof SpeechToTextOutputSchema>;
+import type { SpeechToTextInput, SpeechToTextOutput } from '@/app/schema';
+import { SpeechToTextInputSchema, SpeechToTextOutputSchema } from '@/app/schema';
 
 
 export async function speechToText(input: SpeechToTextInput): Promise<SpeechToTextOutput> {
