@@ -6,7 +6,6 @@ SecureSoulAI is a next-generation, multi-domain AI assistant designed to provide
 
 <p align="center"><em>A preview of the domain-adaptive user interface for SecureSoulAI.</em></p>
 
-
 ---
 
 ## ✨ Key Features
