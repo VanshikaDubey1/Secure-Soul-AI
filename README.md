@@ -132,6 +132,6 @@ The assistant's intelligence is powered by a series of interconnected Genkit flo
 ## 📁 LICENSE 
      MIT LICENSE IS ISSUED 
      
- 📫 Contact
+ ## 📫 Contact
  
 For any queries or feedback, reach out via GitHub or email.
